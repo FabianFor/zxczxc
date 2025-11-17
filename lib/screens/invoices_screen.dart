@@ -8,108 +8,309 @@ import '../providers/invoice_provider.dart';
 import '../providers/business_provider.dart';
 import '../services/invoice_image_generator.dart';
 import '../services/permission_handler.dart';
+import '../services/gallery_saver.dart';
 
-class InvoicesScreen extends StatelessWidget {
+class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
+
+  @override
+  State<InvoicesScreen> createState() => _InvoicesScreenState();
+}
+
+class _InvoicesScreenState extends State<InvoicesScreen> {
+  String _searchQuery = '';
+  DateTime? _filterDate;
 
   @override
   Widget build(BuildContext context) {
     final invoiceProvider = Provider.of<InvoiceProvider>(context);
+    
+    // Filtrar boletas
+    final filteredInvoices = invoiceProvider.invoices.where((invoice) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          invoice.customerName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          invoice.invoiceNumber.toString().contains(_searchQuery);
+      
+      final matchesDate = _filterDate == null ||
+          (invoice.createdAt.year == _filterDate!.year &&
+           invoice.createdAt.month == _filterDate!.month &&
+           invoice.createdAt.day == _filterDate!.day);
+      
+      return matchesSearch && matchesDate;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Boletas'),
         backgroundColor: const Color(0xFF2196F3),
         foregroundColor: Colors.white,
+        actions: [
+          if (_filterDate != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                setState(() {
+                  _filterDate = null;
+                });
+              },
+              tooltip: 'Limpiar filtro de fecha',
+            ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: _selectFilterDate,
+            tooltip: 'Filtrar por fecha',
+          ),
+        ],
       ),
-      body: invoiceProvider.invoices.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long_outlined,
-                      size: 80.sp, color: Colors.grey),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'No hay boletas registradas',
-                    style: TextStyle(fontSize: 18.sp, color: Colors.grey),
-                  ),
-                ],
+      body: Column(
+        children: [
+          // Search Bar
+          Container(
+            padding: EdgeInsets.all(16.w),
+            color: Colors.white,
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por cliente o número...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
               ),
-            )
-          : ListView.builder(
-              padding: EdgeInsets.all(16.w),
-              itemCount: invoiceProvider.invoices.length,
-              itemBuilder: (context, index) {
-                final invoice = invoiceProvider.invoices[index];
-                return Card(
-                  margin: EdgeInsets.only(bottom: 16.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: InkWell(
-                    onTap: () => _showInvoiceDetails(context, invoice),
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Padding(
-                      padding: EdgeInsets.all(16.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Boleta #${invoice.invoiceNumber}',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF2196F3),
-                                ),
-                              ),
-                              Text(
-                                '\$${invoice.total.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF4CAF50),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            DateFormat('dd/MM/yyyy').format(invoice.createdAt),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          SizedBox(height: 12.h),
-                          Text(
-                            invoice.customerName,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (invoice.customerPhone.isNotEmpty) ...[
-                            SizedBox(height: 4.h),
-                            Text(
-                              invoice.customerPhone,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ],
+            ),
+          ),
+
+          // Results Count & Filter Badge
+          if (_searchQuery.isNotEmpty || _filterDate != null)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              color: Colors.blue[50],
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16.sp, color: Colors.blue),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      '${filteredInvoices.length} resultado(s)',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.blue[900],
                       ),
                     ),
                   ),
-                );
-              },
+                  if (_filterDate != null)
+                    Chip(
+                      label: Text(
+                        DateFormat('dd/MM/yyyy').format(_filterDate!),
+                        style: TextStyle(fontSize: 12.sp),
+                      ),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () {
+                        setState(() {
+                          _filterDate = null;
+                        });
+                      },
+                    ),
+                ],
+              ),
             ),
+
+          // Invoice List
+          Expanded(
+            child: filteredInvoices.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _searchQuery.isNotEmpty || _filterDate != null
+                              ? Icons.search_off
+                              : Icons.receipt_long_outlined,
+                          size: 80.sp,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          _searchQuery.isNotEmpty || _filterDate != null
+                              ? 'No se encontraron boletas'
+                              : 'No hay boletas registradas',
+                          style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                        ),
+                        if (_searchQuery.isNotEmpty || _filterDate != null) ...[
+                          SizedBox(height: 8.h),
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _searchQuery = '';
+                                _filterDate = null;
+                              });
+                            },
+                            icon: const Icon(Icons.clear_all),
+                            label: const Text('Limpiar filtros'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: filteredInvoices.length,
+                    itemBuilder: (context, index) {
+                      final invoice = filteredInvoices[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: InkWell(
+                          onTap: () => _showInvoiceDetails(context, invoice),
+                          borderRadius: BorderRadius.circular(12.r),
+                          child: Padding(
+                            padding: EdgeInsets.all(16.w),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Boleta #${invoice.invoiceNumber}',
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF2196F3),
+                                      ),
+                                    ),
+                                    Text(
+                                      '\$${invoice.total.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF4CAF50),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.calendar_today, 
+                                        size: 14.sp, color: Colors.grey[600]),
+                                    SizedBox(width: 4.w),
+                                    Text(
+                                      DateFormat('dd/MM/yyyy HH:mm')
+                                          .format(invoice.createdAt),
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 12.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.person, 
+                                        size: 16.sp, color: Colors.grey[700]),
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Text(
+                                        invoice.customerName,
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (invoice.customerPhone.isNotEmpty) ...[
+                                  SizedBox(height: 4.h),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone, 
+                                          size: 14.sp, color: Colors.grey[600]),
+                                      SizedBox(width: 8.w),
+                                      Text(
+                                        invoice.customerPhone,
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                SizedBox(height: 8.h),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 4.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(4.r),
+                                  ),
+                                  child: Text(
+                                    '${invoice.items.length} producto(s)',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _selectFilterDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _filterDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF2196F3),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _filterDate = picked;
+      });
+    }
   }
 
   void _showInvoiceDetails(BuildContext context, invoice) {
@@ -177,7 +378,8 @@ class InvoicesScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 20.h),
                         Text(
-                          DateFormat('dd/MM/yyyy').format(invoice.createdAt),
+                          DateFormat('dd/MM/yyyy HH:mm')
+                              .format(invoice.createdAt),
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: Colors.grey[600],
@@ -312,9 +514,9 @@ class InvoicesScreen extends StatelessWidget {
     dynamic invoice,
     BusinessProvider businessProvider,
   ) async {
-    // Solicitar permisos primero
-    final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
-    
+    final hasPermission =
+        await AppPermissionHandler.requestStoragePermission(context);
+
     if (!hasPermission) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -330,7 +532,6 @@ class InvoicesScreen extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -348,7 +549,6 @@ class InvoicesScreen extends StatelessWidget {
       );
       print('✅ Imagen generada: $imagePath');
 
-      // Verificar que el archivo existe
       final file = File(imagePath);
       if (!await file.exists()) {
         throw Exception('El archivo no fue creado correctamente');
@@ -403,9 +603,10 @@ class InvoicesScreen extends StatelessWidget {
     dynamic invoice,
     BusinessProvider businessProvider,
   ) async {
-    // Solicitar permisos primero
-    final hasPermission = await AppPermissionHandler.requestStoragePermission(context);
-    
+    // ✅ ARREGLADO: Ahora SÍ guarda en la galería
+    final hasPermission =
+        await AppPermissionHandler.requestStoragePermission(context);
+
     if (!hasPermission) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -421,7 +622,6 @@ class InvoicesScreen extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -431,29 +631,48 @@ class InvoicesScreen extends StatelessWidget {
     );
 
     try {
-      print('🔄 Descargando boleta...');
-      final imagePath = await InvoiceImageGenerator.generateImage(
+      print('🔄 Generando imagen temporal...');
+      final tempImagePath = await InvoiceImageGenerator.generateImage(
         invoice: invoice,
         businessProfile: businessProvider.profile,
         context: context,
       );
-      print('✅ Guardado: $imagePath');
+      print('✅ Imagen temporal: $tempImagePath');
 
-      // Verificar que el archivo existe
-      final file = File(imagePath);
-      if (!await file.exists()) {
-        throw Exception('El archivo no fue creado correctamente');
-      }
-      print('✅ Archivo verificado: ${await file.length()} bytes');
+      // ✅ NUEVO: Guardar en galería usando GallerySaver
+      print('💾 Guardando en galería...');
+      final savedPath = await GallerySaver.saveInvoiceToGallery(
+        tempImagePath: tempImagePath,
+        invoiceNumber: invoice.invoiceNumber,
+      );
+      print('✅ Guardado en galería: $savedPath');
 
       if (context.mounted) Navigator.pop(context);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Guardado en:\n$imagePath'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 8.w),
+                    const Text('✅ Guardado en galería'),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Boleta #${invoice.invoiceNumber}',
+                  style: TextStyle(fontSize: 12.sp),
+                ),
+              ],
+            ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 5),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: 'OK',
               textColor: Colors.white,

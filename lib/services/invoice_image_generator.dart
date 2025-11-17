@@ -11,23 +11,21 @@ import '../models/business_profile.dart';
 class InvoiceImageGenerator {
   static final GlobalKey _globalKey = GlobalKey();
 
-  /// Genera una imagen temporal de la boleta
-  /// Esta imagen se puede usar para compartir o guardar en galería
+  /// Genera una imagen temporal de la boleta con PERFIL COMPLETO
   static Future<String> generateImage({
     required Invoice invoice,
     required BusinessProfile businessProfile,
     required BuildContext context,
   }) async {
     try {
-      print('📸 Iniciando generación de imagen...');
+      print('📸 Iniciando generación de imagen con perfil completo...');
       
-      // Mostrar el widget en un overlay invisible para capturarlo
       final overlay = Overlay.of(context);
       late OverlayEntry overlayEntry;
       
       overlayEntry = OverlayEntry(
         builder: (context) => Positioned(
-          left: -10000, // Fuera de la pantalla
+          left: -10000,
           top: -10000,
           child: RepaintBoundary(
             key: _globalKey,
@@ -46,11 +44,8 @@ class InvoiceImageGenerator {
       );
 
       overlay.insert(overlayEntry);
-
-      // Esperar a que se renderice
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // Capturar la imagen
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       
@@ -60,10 +55,8 @@ class InvoiceImageGenerator {
 
       print('✅ Widget capturado: ${pngBytes.length} bytes');
 
-      // Remover el overlay
       overlayEntry.remove();
 
-      // Guardar la imagen TEMPORAL (no en galería)
       final directory = await getTemporaryDirectory();
       final tempPath = '${directory.path}/temp_invoice_${invoice.invoiceNumber}_${DateTime.now().millisecondsSinceEpoch}.png';
       
@@ -100,7 +93,7 @@ class InvoiceImageWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header con logo y nombre del negocio
+          // ✅ HEADER CON PERFIL COMPLETO
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -111,17 +104,25 @@ class InvoiceImageWidget extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ✅ LOGO (si existe)
                 if (businessProfile.logoPath.isNotEmpty)
                   Container(
-                    width: 80,
-                    height: 80,
-                    margin: const EdgeInsets.only(bottom: 16),
+                    width: 100,
+                    height: 100,
+                    margin: const EdgeInsets.only(right: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -131,52 +132,109 @@ class InvoiceImageWidget extends StatelessWidget {
                         errorBuilder: (context, error, stackTrace) {
                           return const Icon(
                             Icons.store,
-                            size: 40,
+                            size: 50,
                             color: Color(0xFF2196F3),
                           );
                         },
                       ),
                     ),
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            businessProfile.businessName,
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+
+                // ✅ INFORMACIÓN DEL NEGOCIO
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        businessProfile.businessName,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // ✅ TELÉFONO (si existe)
+                      if (businessProfile.phone.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.phone, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                businessProfile.phone,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Gestión de Productos y Boletas',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
+                        ),
+
+                      // ✅ EMAIL (si existe)
+                      if (businessProfile.email.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.email, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  businessProfile.email,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long,
-                        size: 48,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                        ),
+
+                      // ✅ DIRECCIÓN (si existe)
+                      if (businessProfile.address.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  businessProfile.address,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // ✅ ICONO DE BOLETA
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long,
+                    size: 48,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
@@ -193,34 +251,75 @@ class InvoiceImageWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Boleta #${invoice.invoiceNumber}',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'BOLETA DE VENTA',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '#${invoice.invoiceNumber.toString().padLeft(6, '0')}',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '\$${invoice.total.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'TOTAL',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${invoice.total.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          // Fecha
-          Text(
-            DateFormat('dd/MM/yyyy HH:mm').format(invoice.createdAt),
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.black54,
-              fontWeight: FontWeight.w500,
+          // Fecha y hora
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: Colors.black54),
+                const SizedBox(width: 8),
+                Text(
+                  DateFormat('dd/MM/yyyy  •  HH:mm').format(invoice.createdAt),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
@@ -229,36 +328,50 @@ class InvoiceImageWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Cliente:',
+                  'CLIENTE',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                     color: Colors.black54,
+                    letterSpacing: 1,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  invoice.customerName,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.person, size: 20, color: Colors.black54),
+                    const SizedBox(width: 12),
+                    Text(
+                      invoice.customerName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 if (invoice.customerPhone.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    invoice.customerPhone,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.black54,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.phone, size: 18, color: Colors.black54),
+                      const SizedBox(width: 12),
+                      Text(
+                        invoice.customerPhone,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -268,10 +381,11 @@ class InvoiceImageWidget extends StatelessWidget {
 
           // Lista de productos
           const Text(
-            'Productos:',
+            'DETALLE DE PRODUCTOS',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 16),
@@ -284,118 +398,197 @@ class InvoiceImageWidget extends StatelessWidget {
             ),
             child: Column(
               children: [
-                ...invoice.items.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.productName,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '\$${item.price.toStringAsFixed(0)} x ${item.quantity}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
+                // Header de tabla
+                Container(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade300, width: 2),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'PRODUCTO',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
                           ),
                         ),
-                        Text(
-                          '\$${item.total.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 22,
+                      ),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'CANT.',
+                          style: TextStyle(
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF4CAF50),
+                            color: Colors.black54,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          'PRECIO',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          'TOTAL',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Items
+                ...invoice.items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      border: index < invoice.items.length - 1
+                          ? Border(
+                              bottom: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            item.productName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 80,
+                          child: Text(
+                            'x${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            '\$${item.price.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            '\$${item.total.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4CAF50),
+                            ),
+                            textAlign: TextAlign.right,
                           ),
                         ),
                       ],
                     ),
                   );
                 }),
-                const Divider(height: 32, thickness: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total:',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
+
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.only(top: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.shade300, width: 2),
                     ),
-                    Text(
-                      '\$${invoice.total.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4CAF50),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'TOTAL A PAGAR',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        '\$${invoice.total.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 32),
 
-          // Footer con información de contacto
-          if (businessProfile.phone.isNotEmpty ||
-              businessProfile.email.isNotEmpty ||
-              businessProfile.address.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Información de Contacto:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (businessProfile.phone.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '📞 ${businessProfile.phone}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  if (businessProfile.email.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '📧 ${businessProfile.email}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  if (businessProfile.address.isNotEmpty)
-                    Text(
-                      '📍 ${businessProfile.address}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                ],
-              ),
+          // Footer
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: const Column(
+              children: [
+                Text(
+                  '¡Gracias por su compra!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Este documento es una boleta de venta válida',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
