@@ -4,47 +4,55 @@ import 'app_colors.dart';
 
 /// Sistema de tipografía centralizado
 /// TODOS los textos deben usar estos estilos
+/// ✅ OPTIMIZADO PARA TABLET - Textos más pequeños y proporcionales
 class AppTypography {
+  // ===========================
+  // DETECCIÓN DE TABLET
+  // ===========================
+  static bool _isTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width > 600;
+  }
+
   // ===========================
   // TÍTULOS (Headings)
   // ===========================
-  static TextStyle get h1 => TextStyle(
-        fontSize: 32.sp,
+  static TextStyle h1(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 24.sp : 32.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
         height: 1.2,
       );
 
-  static TextStyle get h2 => TextStyle(
-        fontSize: 24.sp,
+  static TextStyle h2(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 20.sp : 24.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
         height: 1.2,
       );
 
-  static TextStyle get h3 => TextStyle(
-        fontSize: 20.sp,
+  static TextStyle h3(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 17.sp : 20.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
         height: 1.3,
       );
 
-  static TextStyle get h4 => TextStyle(
-        fontSize: 18.sp,
+  static TextStyle h4(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 15.sp : 18.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
         height: 1.3,
       );
 
-  static TextStyle get h5 => TextStyle(
-        fontSize: 16.sp,
+  static TextStyle h5(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 14.sp : 16.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
         height: 1.4,
       );
 
-  static TextStyle get h6 => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle h6(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
         height: 1.4,
@@ -53,22 +61,22 @@ class AppTypography {
   // ===========================
   // TEXTOS DE CUERPO (Body)
   // ===========================
-  static TextStyle get bodyLarge => TextStyle(
-        fontSize: 16.sp,
+  static TextStyle bodyLarge(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 14.sp : 16.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textPrimary,
         height: 1.5,
       );
 
-  static TextStyle get bodyMedium => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle bodyMedium(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textPrimary,
         height: 1.5,
       );
 
-  static TextStyle get bodySmall => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle bodySmall(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textPrimary,
         height: 1.5,
@@ -77,15 +85,15 @@ class AppTypography {
   // ===========================
   // TEXTOS SECUNDARIOS
   // ===========================
-  static TextStyle get bodySecondary => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle bodySecondary(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 12.sp : 14.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textSecondary,
         height: 1.5,
       );
 
-  static TextStyle get bodySecondarySmall => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle bodySecondarySmall(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textSecondary,
         height: 1.5,
@@ -94,29 +102,29 @@ class AppTypography {
   // ===========================
   // CAPTIONS Y LABELS
   // ===========================
-  static TextStyle get caption => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle caption(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textSecondary,
         height: 1.4,
       );
 
-  static TextStyle get captionBold => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle captionBold(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
         height: 1.4,
       );
 
-  static TextStyle get label => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle label(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.w500,
         color: AppColors.textPrimary,
         height: 1.4,
       );
 
-  static TextStyle get labelSmall => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle labelSmall(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.w500,
         color: AppColors.textPrimary,
         height: 1.4,
@@ -125,22 +133,22 @@ class AppTypography {
   // ===========================
   // BOTONES
   // ===========================
-  static TextStyle get button => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle button(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textLight,
         height: 1.2,
       );
 
-  static TextStyle get buttonSmall => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle buttonSmall(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textLight,
         height: 1.2,
       );
 
-  static TextStyle get buttonLarge => TextStyle(
-        fontSize: 16.sp,
+  static TextStyle buttonLarge(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 14.sp : 16.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textLight,
         height: 1.2,
@@ -149,22 +157,22 @@ class AppTypography {
   // ===========================
   // PRECIOS Y MONTOS
   // ===========================
-  static TextStyle get priceSmall => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle priceSmall(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.success,
         height: 1.2,
       );
 
-  static TextStyle get price => TextStyle(
-        fontSize: 18.sp,
+  static TextStyle price(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 16.sp : 18.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.success,
         height: 1.2,
       );
 
-  static TextStyle get priceLarge => TextStyle(
-        fontSize: 24.sp,
+  static TextStyle priceLarge(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 20.sp : 24.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.success,
         height: 1.2,
@@ -175,41 +183,49 @@ class AppTypography {
   // ===========================
   
   /// Para títulos de AppBar
-  static TextStyle get appBarTitle => TextStyle(
-        fontSize: 18.sp,
+  static TextStyle appBarTitle(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 16.sp : 18.sp,
         fontWeight: FontWeight.w600,
         color: AppColors.textLight,
         height: 1.2,
       );
 
   /// Para hints de inputs
-  static TextStyle get inputHint => TextStyle(
-        fontSize: 14.sp,
+  static TextStyle inputHint(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.textHint,
         height: 1.5,
       );
 
   /// Para textos de error
-  static TextStyle get error => TextStyle(
-        fontSize: 12.sp,
+  static TextStyle error(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 11.sp : 12.sp,
         fontWeight: FontWeight.normal,
         color: AppColors.error,
         height: 1.4,
       );
 
   /// Para números de tarjetas de estadísticas
-  static TextStyle get statNumber => TextStyle(
-        fontSize: 28.sp,
+  static TextStyle statNumber(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 22.sp : 28.sp,
         fontWeight: FontWeight.bold,
         height: 1.2,
       );
 
   /// Para etiquetas de tarjetas de estadísticas
-  static TextStyle get statLabel => TextStyle(
-        fontSize: 13.sp,
+  static TextStyle statLabel(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 12.sp : 13.sp,
         fontWeight: FontWeight.w500,
         color: AppColors.textSecondary,
         height: 1.3,
+      );
+
+  /// Para inputs de texto
+  static TextStyle input(BuildContext context) => TextStyle(
+        fontSize: _isTablet(context) ? 13.sp : 14.sp,
+        fontWeight: FontWeight.normal,
+        color: AppColors.textPrimary,
+        height: 1.5,
       );
 }

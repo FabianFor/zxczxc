@@ -490,7 +490,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                       fontWeight: FontWeight.bold,
                                       color: theme.textPrimary,
                                     ),
-                                    maxLines: 2,
+                                    maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: 4.h),
